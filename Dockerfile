@@ -1,5 +1,7 @@
 FROM node:10.17.0-slim@sha256:17df3b18bc0f1d3ebccbd91e8ca8e2b06d67cb4dc6ca55e8c09c36c39fd4535d
-    
+
+WORKDIR /usr/src/app
+
 RUN  apt-get update \
      && apt-get install -y wget --no-install-recommends \
      && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
@@ -10,7 +12,10 @@ RUN  apt-get update \
      && wget --quiet https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -O /usr/sbin/wait-for-it.sh \
      && chmod +x /usr/sbin/wait-for-it.sh
 
-ADD package.json package-lock.json /
+COPY package*.json ./
+
 RUN npm install
+
+COPY . .
 
 CMD [ "node", "index.js" ]
