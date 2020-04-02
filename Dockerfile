@@ -1,16 +1,41 @@
-FROM node:10.17.0-slim@sha256:17df3b18bc0f1d3ebccbd91e8ca8e2b06d67cb4dc6ca55e8c09c36c39fd4535d
+FROM node:12-slim
+
+RUN apt-get update && \
+apt-get install -yq gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 \
+libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 \
+libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 \
+libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 \
+fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont \
+ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget && \
+wget https://github.com/Yelp/dumb-init/releases/download/v1.2.1/dumb-init_1.2.1_amd64.deb && \
+dpkg -i dumb-init_*.deb && rm -f dumb-init_*.deb && \
+apt-get clean && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
+RUN yarn global add puppeteer@1.20.0 && yarn cache clean
+
+ENV NODE_PATH="/usr/local/share/.config/yarn/global/node_modules:${NODE_PATH}"
+
+ENV PATH="/tools:${PATH}"
+
+RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser
+
+COPY --chown=pptruser:pptruser ./tools /tools
+
+ENV LANG="C.UTF-8"
+
+WORKDIR /app
+
+RUN mkdir /screenshots \
+	&& mkdir -p /home/pptruser/Downloads \
+    && chown -R pptruser:pptruser /home/pptruser \
+    && chown -R pptruser:pptruser /usr/local/share/.config/yarn/global/node_modules \
+    && chown -R pptruser:pptruser /screenshots \
+    && chown -R pptruser:pptruser /app \
+    && chown -R pptruser:pptruser /tools
+
+USER pptruser
 
 WORKDIR /usr/src/app
-
-RUN  apt-get update \
-     && apt-get install -y wget --no-install-recommends \
-     && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-     && apt-get update \
-     && apt-get install -y google-chrome-unstable --no-install-recommends \
-     && rm -rf /var/lib/apt/lists/* \
-     && wget --quiet https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -O /usr/sbin/wait-for-it.sh \
-     && chmod +x /usr/sbin/wait-for-it.sh
 
 COPY package*.json ./
 
@@ -18,4 +43,6 @@ RUN npm install
 
 COPY . .
 
-CMD [ "node", "index.js" ]
+ENTRYPOINT ["dumb-init", "--"]
+
+CMD ["node", "index.js"]
