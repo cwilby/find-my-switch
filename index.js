@@ -84,10 +84,9 @@ async function notify({ product, available }) {
         body: message
       });
     });
+    slack.send({
+      text: message,
+      channel: process.env.SLACK_CHANNEL || "#general"
+    });
   }
-
-  slack.send({
-    text: message,
-    channel: process.env.SLACK_CHANNEL || "#general"
-  });
 }
