@@ -1,0 +1,18 @@
+{
+  "name": "find-my-switch",
+  "author": "cwilby",
+  "license": "ISC",
+  "version": "0.1.0",
+  "description": "Get SMS/Slack notifications when a Nintendo Switch becomes available on Amazon.com",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dayjs": "^1.8.23",
+    "dotenv": "^8.2.0",
+    "puppeteer": "^2.1.1",
+    "slack-notify": "^0.1.7",
+    "twilio": "^3.42.0"
+  }
+}
